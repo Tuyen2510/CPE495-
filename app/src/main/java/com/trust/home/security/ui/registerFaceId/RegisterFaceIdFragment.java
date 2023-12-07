@@ -64,7 +64,7 @@ public class RegisterFaceIdFragment extends
 
     @Override
     protected void onPermissionGranted() {
-        Toast.makeText(requireContext(), "Điều chỉnh khuôn mặt vào ô tròn", Toast.LENGTH_SHORT).show();
+        Toast.makeText(requireContext(), "scan your face within region", Toast.LENGTH_SHORT).show();
         CameraManager.initialize(this, mBinding.camera);
         CameraManager.getInstance().setListener(this);
         CameraManager.getInstance().startCamera();
