@@ -5,4 +5,5 @@ import com.trust.home.security.database.entity.User;
 
 public interface EditProfileView extends BaseView {
     void onGetUserSuccess(User user);
+    void onSaveSuccess();
 }

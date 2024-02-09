@@ -1,51 +1,116 @@
 package com.trust.home.security.ui.editProfile;
 
+import android.net.Uri;
+import android.os.Build;
+
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.UploadTask;
 import com.trust.home.security.base.BasePresenter;
 import com.trust.home.security.database.entity.User;
+import com.trust.home.security.utils.AppFlow;
 import com.trust.home.security.utils.AppPrefsManager;
+import com.trust.home.security.utils.Constance;
 
-import kotlin.Unit;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.UUID;
 
 public class EditProfilePresenter extends BasePresenter<EditProfileView> {
     private User currentUser;
 
-    public long getUserLoggedId() {
-        if(currentUser != null && currentUser.getId() != null) {
-            return currentUser.getId();
-        } else return -1L;
-    }
-
     public void getLoggedUser() {
-        User prefsUser = AppPrefsManager.getInstance().getUser();
-        database.selectUserWhere(prefsUser.getUserName(), user -> {
-            this.currentUser = user;
-            view.onGetUserSuccess(user);
-            return Unit.INSTANCE;
-        });
+        currentUser = AppFlow.INSTANCE.getCurrentUser();
+
+        if(currentUser != null) {
+            view.onGetUserSuccess(currentUser);
+        }
     }
 
-    public void saveNewUserData(
+    public void saveNewProfile(
+            String filePath,
             String fullName,
             String age,
             int gender
     ) {
+        view.showLoading();
+        User user = AppPrefsManager.getInstance().getUser();
+        File f = new File(filePath);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                String fileId = UUID.randomUUID().toString();
+                storageReference
+                        .getReference(Constance.Storage.PROFILES)
+                        .child(user.getUserName())
+                        .child(fileId)
+                        .putBytes(Files.readAllBytes(f.toPath()))
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                getAvatar(fileId, fullName, age, gender);
+                            } else {
+                                view.hideLoading();
+                                view.showMessage("Upload Avatar Failed");
+                            }
+                        });
+            } catch (IOException e) {
+                view.hideLoading();
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private void getAvatar(
+            String fileId,
+            String fullName,
+            String age,
+            int gender
+    ) {
+        storageReference
+                .getReference(Constance.Storage.PROFILES)
+                .child(currentUser.getUserName())
+                .child(fileId)
+                .getDownloadUrl()
+                .addOnSuccessListener(uri -> {
+                    saveNewProfileToDb(
+                            uri.toString(),
+                            fullName,
+                            age,
+                            gender
+                    );
+                });
+    }
+
+    public void saveNewProfileToDb(
+            String avatarPath,
+            String fullName,
+            String age,
+            int gender) {
         if(currentUser != null) {
-            currentUser.setFullName(fullName);
+            if(avatarPath == null) {
+                view.showLoading();
+            }
+
             currentUser.setAge(age);
+            currentUser.setFullName(fullName);
             currentUser.setGender(gender);
-            saveUser(currentUser);
-        }
-    }
+            if(avatarPath != null) {
+                currentUser.setAvatar(avatarPath);
+            }
 
-    public void setAvatar(String avatar) {
-        if(currentUser != null) {
-            currentUser.setAvatar(avatar);
-            saveUser(currentUser);
+            getRef(Constance.Reference.USERS)
+                    .child(currentUser.getUserName())
+                    .setValue(currentUser)
+                    .addOnCompleteListener(task -> {
+                        view.hideLoading();
+                        if(task.isSuccessful()) {
+                            view.onSaveSuccess();
+                        } else {
+                            view.showMessage("Save failed");
+                        }
+                    });
+        } else {
+            view.hideLoading();
+            view.showMessage("Save failed");
         }
-    }
-
-    private void saveUser(User user) {
-        AppPrefsManager.getInstance().putUser(user);
-        database.updateUser(user);
     }
 }

@@ -1,7 +1,6 @@
 package com.trust.home.security.base;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,7 +12,6 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.viewmodel.CreationExtras;
 import androidx.viewbinding.ViewBinding;
 
-import com.trust.home.security.helpers.GenericsClassType;
 import com.trust.home.security.widgets.DialogMessage;
 
 public abstract class BaseFragment<BD extends ViewBinding, P extends BasePresenter<V>, V extends BaseView> extends Fragment implements BaseView {
@@ -61,12 +59,14 @@ public abstract class BaseFragment<BD extends ViewBinding, P extends BasePresent
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         mBinding = binding(inflater, container);
+        baseActivity = (BaseActivity<?, ?, ?>) getContext();
         return mBinding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        baseActivity = (BaseActivity<?, ?, ?>) getContext();
         mPresenter = getPresenter();
         mPresenter.onAttach(attachView());
         if(getView() != null) {
@@ -107,18 +107,24 @@ public abstract class BaseFragment<BD extends ViewBinding, P extends BasePresent
         return super.getDefaultViewModelCreationExtras();
     }
 
-    protected void showToast(String message) {
+    @Override
+    public void showToast(String message) {
         baseActivity.showToast(message);
     }
 
     @Override
-    public void onError(String message) {
-        baseActivity.onError(message);
+    public void onBackPress() {
+        onBackPressed();
     }
 
     @Override
-    public void onError(Exception exception) {
-        baseActivity.onError(exception);
+    public void showMessage(String message) {
+        baseActivity.showMessage(message);
+    }
+
+    @Override
+    public void showMessage(Exception exception) {
+        baseActivity.showMessage(exception);
     }
 
     protected void onBackPressed() {

@@ -16,6 +16,7 @@ import com.trust.home.security.utils.AppUtils;
 import com.trust.home.security.utils.Gender;
 import com.trust.home.security.utils.GlideUtils;
 import com.trust.home.security.utils.StringUtils;
+import com.trust.home.security.widgets.DialogUpload;
 
 import kotlin.Unit;
 
@@ -75,27 +76,28 @@ public class EditProfileFragment
     }
 
     private void onSave(View view) {
-        showLoading();
-        mPresenter.saveNewUserData(
-                mBinding.fieldName.getText(),
-                mBinding.fieldAge.getText(),
-                mBinding.cbMale.isChecked() ? Gender.MALE.getValue() : Gender.FEMALE.getValue()
-        );
+        String name = mBinding.fieldName.getText();
+        String age = mBinding.fieldAge.getText();
+        int gender = mBinding.cbMale.isChecked() ? Gender.MALE.getValue() : Gender.FEMALE.getValue();
 
         if(currentUri != null) {
-            AppUtils.INSTANCE.compressImage(requireContext(), currentUri, mPresenter.getUserLoggedId(), result -> {
+            AppUtils.INSTANCE.compressImage(requireContext(), currentUri, result -> {
                 if(StringUtils.valid(result)) {
-                    mPresenter.setAvatar(result);
+                    mPresenter.saveNewProfile(
+                            result, name, age, gender
+                    );
                 }
-
-                onEditComplete();
                 return Unit.INSTANCE;
             });
-        } else onEditComplete();
+        } else {
+            mPresenter.saveNewProfileToDb(
+                    null, name, age, gender
+            );
+        }
     }
 
-    private void onEditComplete() {
-        hideLoading();
+    @Override
+    public void onSaveSuccess() {
         showToast("Update successfully");
         onBackPressed();
     }

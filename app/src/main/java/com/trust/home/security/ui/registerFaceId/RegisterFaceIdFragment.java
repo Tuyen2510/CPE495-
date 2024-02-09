@@ -51,15 +51,24 @@ public class RegisterFaceIdFragment extends
         if (System.currentTimeMillis() - now > DELAY_TIME) {
             isFinished = true;
             User user = AppPrefsManager.getInstance().getUser();
-            FacialRecognize.getInstance(requireContext()).training(1, user.getUserName(), bitmap);
-            Toast.makeText(requireContext(), "Training model successful", Toast.LENGTH_SHORT).show();
-            pushActivityAndFinish(MainActivity.class);
+            mPresenter.putFace(user.getUserName(), FacialRecognize.getInstance(requireContext()).training(1, user.getUserName(), bitmap));
         }
     }
 
     @Override
     public void onDetectFaceFailure() {
 
+    }
+
+    @Override
+    public void registerFaceSuccess() {
+        Toast.makeText(requireContext(), "Training model successful", Toast.LENGTH_SHORT).show();
+        pushActivityAndFinish(MainActivity.class);
+    }
+
+    @Override
+    public void registerFaceFailure(String message) {
+        showMessage(message);
     }
 
     @Override

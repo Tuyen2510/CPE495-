@@ -101,7 +101,13 @@ public abstract class BaseActivity<BD extends ViewBinding, P extends BasePresent
                 .commit();
     }
 
-    protected void showToast(String message) {
+    @Override
+    public void onBackPress() {
+        finish();
+    }
+
+    @Override
+    public void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
@@ -125,12 +131,12 @@ public abstract class BaseActivity<BD extends ViewBinding, P extends BasePresent
     protected abstract V attachPresenter();
 
     @Override
-    public void onError(String message) {
+    public void showMessage(String message) {
         showDialogMessage(message, null);
     }
 
     @Override
-    public void onError(Exception exception) {
+    public void showMessage(Exception exception) {
         showDialogMessage(exception.getMessage(), null);
     }
 

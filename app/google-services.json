@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "698227182464",
+    "project_id": "homesecurity-7917a",
+    "storage_bucket": "homesecurity-7917a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:698227182464:android:51f1cb7303dd9f8822cf65",
+        "android_client_info": {
+          "package_name": "com.trust.home.security"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrEyTmTwpYnQm7UfNtDUwwjPtkb7r5fhk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

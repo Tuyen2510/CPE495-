@@ -4,6 +4,11 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.trust.home.security.HomeSecurityApplication;
 import com.trust.home.security.R;
@@ -43,32 +48,30 @@ public class FacialRecognize {
         return INSTANCE;
     }
 
-    public void training(long userId, String userName, Bitmap bmp) {
+    public Face training(long userId, String userName, Bitmap bmp) {
         FloatArray2D floatArray2D = new FloatArray2D(getEmbeddingsFace(bmp));
-        Face face = new Face(null, userId, userName, gson.toJson(floatArray2D));
-        HomeSecurityApplication.database.checkUserIsRegisteredFace(userName, isRegistered -> {
-            if(!isRegistered) {
-                HomeSecurityApplication.database.insertFace(face);
-            }
-            return Unit.INSTANCE;
-        });
+        return new Face(null, userId, userName, gson.toJson(floatArray2D));
     }
+//        HomeSecurityApplication.database.checkUserIsRegisteredFace(userName, isRegistered -> {
+//            if(!isRegistered) {
+//                HomeSecurityApplication.database.insertFace(face);
+//            }
+//            return Unit.INSTANCE;
+//        });
+//    }
 
-    public void recognize(String userName, Bitmap bmp, RecognitionListener listener) {
-        HomeSecurityApplication.database.selectFaceWhere(userName, face -> {
-            if(face == null) {
-                listener.userHasNotRegistration();
-            } else {
-                float distance = findNearest(stringToArray(face.getFaceData()), getEmbeddingsFace(bmp)[0]);
+    public void recognize(Face face, Bitmap bmp, RecognitionListener listener) {
+        if(face == null) {
+            listener.userHasNotRegistration();
+        } else {
+            float distance = findNearest(stringToArray(face.getFaceData()), getEmbeddingsFace(bmp)[0]);
 
-                Log.d("DISTANCE", String.valueOf(distance));
+            Log.d("DISTANCE", String.valueOf(distance));
 
-                if(distance < 1.000f) {
-                    listener.recognizeSuccess();
-                } else listener.recognizeFailure();
-            }
-            return Unit.INSTANCE;
-        });
+            if(distance < 1.000f) {
+                listener.recognizeSuccess();
+            } else listener.recognizeFailure();
+        }
     }
 
     private float[][] stringToArray(String input) {

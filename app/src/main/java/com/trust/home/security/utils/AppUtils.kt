@@ -17,12 +17,12 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.Base64
+import java.util.UUID
 
 private const val FILE_CACHE_PATH = "HomeSecurity/Users/Avatars/"
 object AppUtils {
     fun compressImage(context: Context,
                       uri: Uri,
-                      userId: Long,
                       onCompressCompleted: (path: String?) -> Unit) = CoroutineScope(Dispatchers.IO).launch {
         getFile(context, uri)?.let {
             val compressedImageFile = Resizer(context)
@@ -30,7 +30,7 @@ object AppUtils {
                 .setSourceImage(it)
                 .resizedFile
 
-            val path = copyFileToCache(context, compressedImageFile, userId)
+            val path = copyFileToCache(context, compressedImageFile)
             withContext(Dispatchers.Main) {
                 onCompressCompleted.invoke(path)
             }
@@ -39,10 +39,10 @@ object AppUtils {
         }
     }
 
-    private fun copyFileToCache(context: Context, sourceFile: File, userId: Long): String? {
+    private fun copyFileToCache(context: Context, sourceFile: File): String? {
         try {
             val inputStream: InputStream = FileInputStream(sourceFile)
-            val outputFile = createFile(context, userId)
+            val outputFile = createFile(context, )
             val outputStream: OutputStream = FileOutputStream(outputFile)
             val buffer = ByteArray(1024)
             var length: Int
@@ -58,8 +58,8 @@ object AppUtils {
         }
     }
 
-    private fun createFile(context: Context, userId: Long): File {
-        val file = File(context.cacheDir, "$FILE_CACHE_PATH${userId}_${now()}.jpg")
+    private fun createFile(context: Context): File {
+        val file = File(context.cacheDir, "$FILE_CACHE_PATH${UUID.randomUUID()}_${now()}.jpg")
 
         if(!file.exists()) {
             file.parentFile?.mkdirs()

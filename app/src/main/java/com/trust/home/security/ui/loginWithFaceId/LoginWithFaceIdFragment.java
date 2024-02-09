@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import com.trust.home.security.R;
 import com.trust.home.security.base.BaseCameraFragment;
+import com.trust.home.security.database.entity.Face;
 import com.trust.home.security.databinding.FragmentLoginWithFaceIdBinding;
 import com.trust.home.security.ui.main.MainActivity;
 import com.trust.home.security.utils.AppPrefsManager;
@@ -19,6 +20,7 @@ public class LoginWithFaceIdFragment
         extends BaseCameraFragment<FragmentLoginWithFaceIdBinding, LoginWithFaceIdPresenter, LoginWithFaceIdView>
         implements LoginWithFaceIdView, CameraManager.CameraListener, FacialRecognize.RecognitionListener {
     private boolean isFinished = false;
+    private Face face;
 
     @Override
     protected FragmentLoginWithFaceIdBinding binding(LayoutInflater inflater, ViewGroup container) {
@@ -44,21 +46,27 @@ public class LoginWithFaceIdFragment
 
     @Override
     protected LoginWithFaceIdView attachView() {
-        return null;
+        return this;
     }
 
     @Override
     public void onDetectFaceSuccess(Bitmap bitmap) {
         FacialRecognize.getInstance(baseActivity).recognize(
-                AppPrefsManager.getInstance().getUser().getUserName(),
-                bitmap,
-                this
+                face, bitmap, this
         );
     }
 
     @Override
     public void onDetectFaceFailure() {
 
+    }
+
+    @Override
+    public void getFaceSuccess(Face face) {
+        this.face = face;
+        CameraManager.initialize(this, mBinding.previewCamera);
+        CameraManager.getInstance().setListener(this);
+        CameraManager.getInstance().startCamera();
     }
 
     @Override
@@ -84,8 +92,6 @@ public class LoginWithFaceIdFragment
 
     @Override
     protected void onPermissionGranted() {
-        CameraManager.initialize(this, mBinding.previewCamera);
-        CameraManager.getInstance().setListener(this);
-        CameraManager.getInstance().startCamera();
+        mPresenter.getFace();
     }
 }

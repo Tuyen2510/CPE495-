@@ -60,7 +60,7 @@ public class ProfileFragment
     }
 
     private void goToEditScreen() {
-       // pushFragment(EditProfileFragment.newInstance(EditProfileFragment.class));
+        pushFragment(EditProfileFragment.newInstance(EditProfileFragment.class));
     }
 
     @Override
